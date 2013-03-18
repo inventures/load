@@ -1,0 +1,37 @@
+visitors: 1000
+time: 120000
+host: http://entrago-cms.herokuapp.com
+requests:
+  -
+    weight: 1
+    time: 0.3
+    request: 
+      method: GET
+      url: /
+  -
+    weight: 0.5
+    time: 0.5
+    request:
+      method: GET
+      url: /?page=2
+  -
+    weight: 0.6
+    time: 0.5
+    request:
+      method: GET
+      url: /?id=1362490233482&loc=land
+  -
+    weight: 0.3
+    time: 0.5
+    request:
+      method: GET
+      url: /?id=1362490233482&loc=land
+  -
+    weight : 0.5
+    time: 1
+    usernameRequired: true
+    request:
+      method: POST
+      url: /on/1/do/postcomment
+      form:
+        text: blah blah blah blah testing a comment

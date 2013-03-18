@@ -1,0 +1,13 @@
+{
+    "name"            : "Load",
+    "version"         : "0.0.1",
+    "dependencies"    : {
+        "request"          : "latest",
+        "js-yaml"     : "=1.0.2",
+        "underscore"  : "latest"
+    },
+    "engines"         : {
+        "node"        : "0.8.x",
+        "npm"         : "1.1.x"
+    }
+}
