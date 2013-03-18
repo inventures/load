@@ -2,6 +2,8 @@ var request = require('request');
 var yaml = require('js-yaml');
 var _ = require('underscore');
 var engine = require('./lib/engine');
+var cluster = require('cluster');
+var numCPUs = require('os').cpus().length;
 
 //get the command line arguments in a nice object
 var argv = require('optimist').argv;
@@ -41,7 +43,7 @@ function run(visitors) {
                     id: index++,
                     total: all.length,
                     timestamp: req.time,
-                    time: new Date().getTime() - time,
+                    time: Math.min(res.headers['x-render-time'] || 300000, new Date().getTime() - time),
                     statusCode: res.statusCode,
                     url: req.request.url
                 };
@@ -50,6 +52,18 @@ function run(visitors) {
             });    
         }, req.time);
     });
+
+    //exit after end of requests
+    setTimeout(process.exit, data.time * 1.05);
+}
+
+if (cluster.isMaster) {
+    // Fork workers.
+    for (var i = 0; i < numCPUs; i++) {
+        cluster.fork();
+    }
+
+    return;
 }
 
 run(args.visitors);

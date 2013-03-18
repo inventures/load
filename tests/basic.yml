@@ -1,5 +1,5 @@
 visitors: 400
-time: 120000
+time: 60000
 host: http://entrago-cms.herokuapp.com
 requests:
   -

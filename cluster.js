@@ -15,13 +15,17 @@ var periods = 60;
 var interval = 1000;
 
 //number of visitors per dyno
-var visitorsPerDyno = 100;
+var visitorsPerDyno = 3heroku s00;
+var dynoCost = 0.05 / 60 / 60;
 
 //get the command line arguments in a nice object
 var argv = require('optimist').argv;
 var args = {
     visitors: argv._[0]
 }
+
+var dynos = Math.max(1, parseInt(args.visitors / visitorsPerDyno));
+var cost = Math.round(dynos * dynoCost * periods * 1000) / 1000;
 
 function startDyno (visitors) {
     var data = querystring.stringify({
@@ -44,7 +48,7 @@ function startDyno (visitors) {
 
     var req = https.request(options, function (res) {
         res.on('data', function(data) {
-            console.log(data);
+            
         });
     });
 
@@ -62,7 +66,7 @@ function tail () {
     var options = {
         headers: headers,
         hostname: 'api.heroku.com',
-        path: '/apps/' + applicationName + '/logs?logplex=true&ps=router&tail=1&num=0',
+        path: '/apps/' + applicationName + '/logs?logplex=true&tail=1&num=0',
         method: 'GET'
     };
 
@@ -81,10 +85,12 @@ function consume (data) {
 
     var buffer = '';
     var total = 0;
+    var count = 0;
+    var errors = 0;
     var last = 0;
     var queue = [];
-    var dynos = {};
-
+    var series = [];
+    
     var options = {
         host: address.host,
         path: address.path
@@ -97,7 +103,17 @@ function consume (data) {
 
             lines.forEach(function(line) {
                 if(line.indexOf('{') == -1) return;
-                queue.push(JSON.parse(line.substring(line.indexOf('{'))));
+
+                try {
+                    var data = JSON.parse(line.substring(line.indexOf('{')));
+                    
+                    if(data.statusCode != 200) errors ++;
+                    total++;
+
+                    queue.push(data);
+                } catch (e) {
+                    //don't error here
+                }
             });
         });
 
@@ -108,26 +124,87 @@ function consume (data) {
 
     //summarisies stats over a given period
     var counter = function () {
-        var current = total - last;
+        series.push(queue);
+        queue = [];
+        if(series.length > periods) series = series.slice(-periods);
 
         //clear console
         console.log('\033[2J');
 
+        //generate output data
+        var totalRequests = 0;
+        var totalTime = 0;
+        var errors = 0;
+
+        series.forEach(function(queue) {
+            queue.forEach(function(data) {
+                totalRequests ++;
+                totalTime += data.time;
+                if(data.statusCode != 200) errors ++;
+            });
+        });
+
+        var perSecond = totalRequests / (periods * interval) * 1000;
+        var perMinute = perSecond * 60;
+        var perHour = perMinute * 60;
+        var perDay = perHour * 24;
+        var perMonth = perDay * 30;
+        var perYear = perDay * 365;
+
+        console.log('Total dynos: ' + dynos);
+        console.log('Total cost: $' + cost);
+
+        console.log('---------------')
+
+        console.log('Total requests: ' + formatNumber(total));
+        console.log('Errors: ' + formatNumber(errors));
+
+        console.log('---------------');
+
+        console.log('Per second: ' + formatNumber(perSecond));
+        console.log('Per minute: ' + formatNumber(perMinute));
+        console.log('Per hour: ' + formatNumber(perHour));
+        console.log('Per day: ' + formatNumber(perDay));
+        console.log('Per month: ' + formatNumber(perMonth));
+        console.log('Per year: ' + formatNumber(perYear));
+
+        console.log('---------------');
         
+        console.log('Response time: ' + parseInt(totalTime / (totalRequests || 1)) + 'ms');
+        
+        if(count++ > periods * 1.1) {
+            clearTimeout(timer);
+            process.exit();
+        }
     };
 
     var req = https.request(options, responseHandler);
     req.write('');
     req.end();
 
-    setInterval(counter, interval);
+    var timer = setInterval(counter, interval);
 }
 
 
 //start heroku dynos
-for(var i=0; i<Math.max(1, args.visitors / visitorsPerDyno); i++) {
+for(var i=0; i<dynos; i++) {
     startDyno(Math.min(args.visitors, visitorsPerDyno));
 }
 
 //start logging
 tail();
+
+
+formatNumber = function formatNumber(num) {
+    if(num === null || num === undefined) {
+        return 0;
+    } else if(num >= 1000000000) {
+        return Math.round(num / 100000000) / 10 + 'b';
+    } else if(num > 1000000) {
+        return Math.round(num / 100000) / 10 + 'm';
+    } else if(num > 5000) {
+        return Math.round(num / 100) / 10 + 'k';
+    } else {
+        return parseInt(num);
+    }
+};  
