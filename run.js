@@ -5,8 +5,8 @@ var engine = require('./lib/engine');
 
 function run() {
     var all = [];
-    var concurrent = 40;
     var dynos = 0;
+    var index = 1;
 
     var usernames = require('./tests/usernames.yml');
     var data = require('./tests/basic.yml');
@@ -18,6 +18,27 @@ function run() {
         });
     }
 
+    all.forEach(function(req) {
+        setTimeout(function() {
+            var params = {
+                url: data.host + req.request.url,
+                method: req.request.method,
+                form: req.request.form
+            };
+
+            var time = new Date().getTime();
+
+            request(params, function (err, res, data) {
+                console.log(pad(index++, 5) + '/' + all.length + '  ' + pad(req.time / 1000, 7) + 's : ' + pad((new Date().getTime() - time) / 1000, 5) + 's : ' + res.statusCode + ' = ' + req.request.url);    
+            });    
+        }, req.time);
+    });
+}
+
+run();
+
+/*
+function server() {
     dynos = Math.max(1, parseInt(all.length / (concurrent * data.time / 1000)));
 
     console.log('Initialising load test');
@@ -30,15 +51,16 @@ function run() {
     console.log('Per year = ' + formatNumber(all.length / data.time * 1000 * 60 * 60 * 24 * 365));
     console.log('Dynos required = ' + dynos);
     console.log('------------------------');
-    
-    for(var i=0; i<Math.min(10, all.length); i++) {
-        console.log(JSON.stringify(all[i]));
+}
+ */
+
+function pad(str, len) {
+    for(var i=0; i<len; i++) {
+        str = ' ' + str;
     }
 
-    console.log('...');
-}
-
-run();
+    return str.slice(-len);
+};
 
 function formatNumber(num) {
     if(num === null || num === undefined) {
