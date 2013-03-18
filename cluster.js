@@ -126,7 +126,7 @@ function consume (data) {
 
 //start heroku dynos
 for(var i=0; i<Math.max(1, args.visitors / visitorsPerDyno); i++) {
-    startDyno(visitorsPerDyno);
+    startDyno(Math.min(args.visitors, visitorsPerDyno));
 }
 
 //start logging
