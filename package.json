@@ -4,7 +4,8 @@
     "dependencies"    : {
         "request"          : "latest",
         "js-yaml"     : "=1.0.2",
-        "underscore"  : "latest"
+        "underscore"  : "latest",
+        "optimist"    : "latest"
     },
     "engines"         : {
         "node"        : "0.8.x",
