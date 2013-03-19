@@ -15,7 +15,7 @@ var periods = 60;
 var interval = 1000;
 
 //number of visitors per dyno
-var visitorsPerDyno = 3heroku s00;
+var visitorsPerDyno = 1000;
 var dynoCost = 0.05 / 60 / 60;
 
 //get the command line arguments in a nice object
@@ -157,7 +157,7 @@ function consume (data) {
         console.log('---------------')
 
         console.log('Total requests: ' + formatNumber(total));
-        console.log('Errors: ' + formatNumber(errors));
+        console.log('Errors: ' + formatNumber(errors) + ' / ' + (100*errors/total) + '%');
 
         console.log('---------------');
 
@@ -188,7 +188,7 @@ function consume (data) {
 
 //start heroku dynos
 for(var i=0; i<dynos; i++) {
-    startDyno(Math.min(args.visitors, visitorsPerDyno));
+    startDyno(Math.min(args.visitors / 4, visitorsPerDyno / 4));
 }
 
 //start logging

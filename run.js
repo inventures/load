@@ -43,10 +43,17 @@ function run(visitors) {
                     id: index++,
                     total: all.length,
                     timestamp: req.time,
-                    time: Math.min(res.headers['x-render-time'] || 300000, new Date().getTime() - time),
+                    time: new Date().getTime() - time,
                     statusCode: res.statusCode,
                     url: req.request.url
                 };
+
+                if(parseInt(res.headers['x-render-time'])) {
+                    output.time = parseInt(res.headers['x-render-time']);
+                } 
+                else {
+                    console.log(output.id + ' = ' + output.time);
+                }
 
                 console.log(JSON.stringify(output));
             });    
