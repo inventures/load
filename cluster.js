@@ -85,6 +85,7 @@ function consume (data) {
 
     var buffer = '';
     var total = 0;
+    var authenticated = 0;
     var count = 0;
     var errors = 0;
     var last = 0;
@@ -109,6 +110,8 @@ function consume (data) {
                     
                     if(data.statusCode != 200) errors ++;
                     total++;
+
+                    if(data.url.indexOf('?_username') > -1) authenticated ++;
 
                     queue.push(data);
                 } catch (e) {
@@ -157,6 +160,7 @@ function consume (data) {
         console.log('---------------')
 
         console.log('Total requests: ' + formatNumber(total));
+        console.log('Authenticated requests: ' + formatNumber(authenticated));
         console.log('Errors: ' + formatNumber(errors) + ' / ' + (100*errors/total) + '%');
 
         console.log('---------------');

@@ -20,7 +20,11 @@ function run(visitors) {
     var data = require('./tests/basic.yml');
 
     for(var i=0; i<(visitors || data.visitors); i++) {
-        requests = engine.generateRandomTest(data, usernames[parseInt(Math.random() * usernames.length)], data.time);    
+        //ramp up towards the end of the load test
+        var time = Math.min(1, -Math.log(1- i/(visitors || data.visitors)));
+        time = parseInt((time * data.time * .9) + (i/(visitors || data.visitors) * data.time *.1));
+
+        requests = engine.generateRandomTest(data, usernames[parseInt(Math.random() * usernames.length)], time);    
         requests.forEach(function(request) {
             all.push(request);
         });
