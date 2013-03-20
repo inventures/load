@@ -91,6 +91,7 @@ function consume (data) {
     var last = 0;
     var queue = [];
     var series = [];
+    var start = new Date().getTime();
     
     var options = {
         host: address.host,
@@ -108,7 +109,10 @@ function consume (data) {
                 try {
                     var data = JSON.parse(line.substring(line.indexOf('{')));
                     
-                    if(data.statusCode != 200) errors ++;
+                    if(data.statusCode != 200) {
+                        errors ++;
+                        console.log(data.statusCode);
+                    }
                     total++;
 
                     if(data.url.indexOf('?_username') > -1) authenticated ++;
@@ -138,6 +142,7 @@ function consume (data) {
         var totalRequests = 0;
         var totalTime = 0;
         var errors = 0;
+        var seconds = parseInt((new Date().getTime() - start) / 1000);
 
         series.forEach(function(queue) {
             queue.forEach(function(data) {
@@ -147,7 +152,7 @@ function consume (data) {
             });
         });
 
-        var perSecond = totalRequests / (periods * interval) * 1000;
+        var perSecond = totalRequests / Math.min((periods * interval) * 1000, seconds);
         var perMinute = perSecond * 60;
         var perHour = perMinute * 60;
         var perDay = perHour * 24;
@@ -156,6 +161,7 @@ function consume (data) {
 
         console.log('Total dynos: ' + dynos);
         console.log('Total cost: $' + cost);
+        console.log('Running time: ' + seconds + 's');
 
         console.log('---------------')
 

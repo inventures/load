@@ -52,11 +52,8 @@ function run(visitors) {
                     url: req.request.url
                 };
 
-                if(parseInt(res.headers['x-render-time'])) {
+                if(parseInt(res.headers['x-render-time']) && parseInt(res.headers['x-render-time']) < output.time) {
                     output.time = parseInt(res.headers['x-render-time']);
-                } 
-                else {
-                    console.log(output.id + ' = ' + output.time);
                 }
 
                 console.log(JSON.stringify(output));
