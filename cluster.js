@@ -15,8 +15,9 @@ var periods = 60;
 var interval = 1000;
 
 //number of visitors per dyno
-var visitorsPerDyno = 1000;
+var visitorsPerDyno = 2000;
 var dynoCost = 0.05 / 60 / 60;
+var requestsPerSecPerVisitor = 1/20;
 
 //get the command line arguments in a nice object
 var argv = require('optimist').argv;
@@ -28,6 +29,8 @@ var dynos = Math.max(1, parseInt(args.visitors / visitorsPerDyno));
 var cost = Math.round(dynos * dynoCost * periods * 1000) / 1000;
 
 function startDyno (visitors) {
+    console.log('Starting Dyno load process with ' + visitors + ' virtual users per core');
+
     var data = querystring.stringify({
         command: 'node run ' + visitors
     });
@@ -112,7 +115,6 @@ function consume (data) {
                     
                     if(data.statusCode != 200) {
                         errors ++;
-                        console.log(data.statusCode);
                     }
                     total++;
 
@@ -160,6 +162,7 @@ function consume (data) {
         var perDay = perHour * 24;
         var perMonth = perDay * 30;
         var perYear = perDay * 365;
+        var visitors = perSecond / requestsPerSecPerVisitor;
 
         console.log('Total dynos: ' + dynos);
         console.log('Total cost: $' + cost);
@@ -167,6 +170,7 @@ function consume (data) {
 
         console.log('---------------')
 
+        console.log('Active visitors: ' + formatNumber(visitors));
         console.log('Total requests: ' + formatNumber(total));
         console.log('Authenticated requests: ' + formatNumber(authenticated));
         console.log('Cached requests: ' + formatNumber(cached));
