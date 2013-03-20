@@ -49,6 +49,7 @@ function run(visitors) {
                     timestamp: req.time,
                     time: new Date().getTime() - time,
                     statusCode: res.statusCode,
+                    cached: JSON.stringify(res.headers).indexOf('nocache=1') == -1,
                     url: req.request.url
                 };
 
